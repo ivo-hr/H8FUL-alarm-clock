@@ -1,6 +1,7 @@
 package com.example.h8fulalarmclock;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.Room;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -80,7 +81,24 @@ public class MainActivity extends AppCompatActivity {
         //go to settings activity
         settingsButton.setOnClickListener(v -> {
             //TODO: Go to settings activity
-
+            //Test the alarm screen activity
+            //Create an alarm to test with
+            AlarmEntity alarm = new AlarmEntity("12:00", "0000000", true, 1, "ringtone");
+            //Add the alarm to the database
+            new Thread(() -> {
+                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                        AppDatabase.class, "database-name").build();
+                //Get a new alarm id different from -1 and from the ones already in the database
+                int newId = 0;
+                while(db.alarmDao().getById(newId) != null || newId == -1){
+                    newId++;
+                }
+                alarm.id = newId;
+                db.alarmDao().insert(alarm);
+            }).start();
+            Intent intent = new Intent(this, AlarmScreenActivity.class);
+            intent.putExtra("ALARM_ID", alarm.id);
+            startActivity(intent);
         });
     }
 }

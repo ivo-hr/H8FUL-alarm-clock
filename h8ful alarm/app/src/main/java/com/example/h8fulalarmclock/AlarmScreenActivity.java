@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -29,11 +30,12 @@ public class AlarmScreenActivity extends AppCompatActivity {
             AppDatabase db = Room.databaseBuilder(getApplicationContext(),
                     AppDatabase.class, "database-name").build();
             AlarmEntity alarm = db.alarmDao().getById(alarmId);
-
+            if (alarm == null) Log.d("AlarmScreenActivity", "Alarm is null ");
             // Animate the button in the main thread
             runOnUiThread(() -> {
                 // Calculate the animation duration based on the speed
-                long duration = 1000 / alarm.getSpeed();
+                long duration = 750;
+                if (alarm != null) duration = 1000 / alarm.getSpeed();
                 // Get the size of the screen
                 DisplayMetrics displayMetrics = new DisplayMetrics();
                 getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -49,27 +51,41 @@ public class AlarmScreenActivity extends AppCompatActivity {
                 int maxX = screenWidth - buttonWidth;
                 int minY = 0;
                 int maxY = screenHeight - buttonHeight;
+                //Randomize the min and max values without going out of screen
+                minX = (int) (Math.random() * (maxX - minX - 400) + minX);
+                minY = (int) (Math.random() * (maxY - minY - 400) + minY);
+                maxX = (int) (Math.random() * (maxX - minX + 400) + minX);
+                maxY = (int) (Math.random() * (maxY - minY + 400) + minY);
+                //The shorter the range the faster the button moves
+                int rangeX = maxX - minX;
+                int rangeY = maxY - minY;
+                long alarmSpeed = duration/(rangeX * rangeY);
+
                 // Create an ObjectAnimator for the X coordinate
                 ObjectAnimator xAnimator = ObjectAnimator.ofFloat(stopAlarmButton, "x", minX, maxX);
-                xAnimator.setDuration(duration);
+                xAnimator.setDuration(alarmSpeed);
                 xAnimator.setRepeatMode(ValueAnimator.REVERSE);
                 xAnimator.setRepeatCount(ValueAnimator.INFINITE);
 
                 // Create an ObjectAnimator for the Y coordinate
                 ObjectAnimator yAnimator = ObjectAnimator.ofFloat(stopAlarmButton, "y", minY, maxY);
-                yAnimator.setDuration(duration);
+                yAnimator.setDuration(alarmSpeed);
                 yAnimator.setRepeatMode(ValueAnimator.REVERSE);
                 yAnimator.setRepeatCount(ValueAnimator.INFINITE);
 
                 // Start the animations
                 xAnimator.start();
                 yAnimator.start();
+
             });
         }).start();
 
         stopAlarmButton.setOnClickListener(v -> {
             Intent serviceIntent = new Intent(this, AlarmService.class);
             stopService(serviceIntent);
+
+            //Close the alarm screen
+            finish();
         });
 
         //Set current time in 24h to textview
@@ -109,6 +125,9 @@ public class AlarmScreenActivity extends AppCompatActivity {
                     }
                 }).start();
             }
+
+            //Close the alarm screen
+            finish();
         });
     }
 }
