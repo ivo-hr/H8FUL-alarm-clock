@@ -47,28 +47,57 @@ public class AlarmScreenActivity extends AppCompatActivity {
                 int buttonHeight = stopAlarmButton.getHeight();
 
                 // Calculate the range of possible X and Y coordinates for the button
-                int minX = 0;
-                int maxX = screenWidth - buttonWidth;
-                int minY = 0;
-                int maxY = screenHeight - buttonHeight;
+                int xPos0 = 0;
+                int xPos1 = screenWidth - buttonWidth;
+                int yPos0 = 0;
+                int yPos1 = screenHeight - buttonHeight;
                 //Randomize the min and max values without going out of screen
-                minX = (int) (Math.random() * (maxX - minX - 400) + minX);
-                minY = (int) (Math.random() * (maxY - minY - 400) + minY);
-                maxX = (int) (Math.random() * (maxX - minX + 400) + minX);
-                maxY = (int) (Math.random() * (maxY - minY + 400) + minY);
+                xPos0 = (int) (Math.random() * (xPos1 - xPos0 - 400) + xPos0);
+                yPos0 = (int) (Math.random() * (yPos1 - yPos0 - 400) + yPos0);
+                xPos1 = (int) (Math.random() * (xPos1 - xPos0 - 400) + xPos0);
+                yPos1 = (int) (Math.random() * (yPos1 - yPos0 - 400) + yPos0);
+                //Randomly switch the min and max values
+                if (Math.random() > 0.5) {
+                    int temp = xPos0;
+                    xPos0 = xPos1;
+                    xPos1 = temp;
+                }
+                if (Math.random() > 0.5) {
+                    int temp = yPos0;
+                    yPos0 = yPos1;
+                    yPos1 = temp;
+                }
+
                 //The shorter the range the faster the button moves
-                int rangeX = maxX - minX;
-                int rangeY = maxY - minY;
-                long alarmSpeed = duration/(rangeX * rangeY);
+                int rangeX = xPos1 - xPos0;
+                int rangeY = yPos1 - yPos0;
+                //Set the range to positive value
+                if(rangeX < 0) rangeX = -rangeX;
+                if(rangeY < 0) rangeY = -rangeY;
+                //If the range is too short, set the positions at least 400px apart
+                if(rangeX < 800) {
+                    xPos0 -= 400 * rangeX / 400;
+                    xPos1 += 400 * rangeX / 400;
+                }
+                if(rangeY < 800) {
+                    yPos0 -= 400 * rangeY / 400;
+                    yPos1 += 400 * rangeY / 400;
+                }
+
+                long alarmSpeed = rangeX*rangeY*2/duration;
+                //Set alarmSpeed to positive value
+                if(alarmSpeed < 0) alarmSpeed = -alarmSpeed;
+                //Set minimum speed
+                if(alarmSpeed < 100) alarmSpeed = 100;
 
                 // Create an ObjectAnimator for the X coordinate
-                ObjectAnimator xAnimator = ObjectAnimator.ofFloat(stopAlarmButton, "x", minX, maxX);
+                ObjectAnimator xAnimator = ObjectAnimator.ofFloat(stopAlarmButton, "x", xPos0, xPos1);
                 xAnimator.setDuration(alarmSpeed);
                 xAnimator.setRepeatMode(ValueAnimator.REVERSE);
                 xAnimator.setRepeatCount(ValueAnimator.INFINITE);
 
                 // Create an ObjectAnimator for the Y coordinate
-                ObjectAnimator yAnimator = ObjectAnimator.ofFloat(stopAlarmButton, "y", minY, maxY);
+                ObjectAnimator yAnimator = ObjectAnimator.ofFloat(stopAlarmButton, "y", yPos0, yPos1);
                 yAnimator.setDuration(alarmSpeed);
                 yAnimator.setRepeatMode(ValueAnimator.REVERSE);
                 yAnimator.setRepeatCount(ValueAnimator.INFINITE);
