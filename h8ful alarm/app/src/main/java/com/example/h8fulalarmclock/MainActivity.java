@@ -3,7 +3,10 @@ package com.example.h8fulalarmclock;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.room.Room;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,7 +21,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        //Notification channel for reminders
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Reminder Channel";
+            String description = "Channel for Reminder notifications";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("reminderChannel", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
 
 
         //Set current time in 24h to textview
@@ -63,7 +76,8 @@ public class MainActivity extends AppCompatActivity {
         //BUTTONS
         Button alarmButton = (Button) findViewById(R.id.but_alarm);
         Button reminderButton = (Button) findViewById(R.id.but_reminder);
-        Button settingsButton = (Button) findViewById(R.id.but_settings);
+        Button testAlarmButton = (Button) findViewById(R.id.but_testAlarm);
+        Button testReminderButton = (Button) findViewById(R.id.but_testReminder);
 
         //go to alarm activity
         alarmButton.setOnClickListener(v -> {
@@ -75,19 +89,18 @@ public class MainActivity extends AppCompatActivity {
 
         //go to reminder activity
         reminderButton.setOnClickListener(v -> {
-            //TODO: Go to reminder activity
+            Intent intent = new Intent(this, RemindersActivity.class);
+            startActivity(intent);
         });
 
-        //go to settings activity
-        settingsButton.setOnClickListener(v -> {
-            //TODO: Go to settings activity
-            //Test the alarm screen activity
+        //Test the alarm
+        testAlarmButton.setOnClickListener(v -> {
             //Create an alarm to test with
             AlarmEntity alarm = new AlarmEntity("12:00", "0000000", true, 1, "ringtone");
             //Add the alarm to the database
             new Thread(() -> {
                 AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "database-name").build();
+                        AppDatabase.class, "alarms").build();
                 //Get a new alarm id different from -1 and from the ones already in the database
                 int newId = 0;
                 while(db.alarmDao().getById(newId) != null || newId == -1){
@@ -100,5 +113,29 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("ALARM_ID", alarm.id);
             startActivity(intent);
         });
+
+        //Test the reminder
+        testReminderButton.setOnClickListener(v -> {
+            //Create a reminder to test with
+            ReminderEntity reminder = new ReminderEntity("12/12/2021", "12:00", "Test reminder", true);
+            //Add the reminder to the database
+            new Thread(() -> {
+                AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                        AppDatabase.class, "reminders").build();
+                //Get a new reminder id different from -1 and from the ones already in the database
+                int newId = 0;
+                while(db.reminderDao().getById(newId) != null || newId == -1){
+                    newId++;
+                }
+                reminder.id = newId;
+                db.reminderDao().insert(reminder);
+            }).start();
+
+            //Send a broadcast to force a notification
+            Intent intent = new Intent(MainActivity.this, ReminderReceiver.class);
+            intent.putExtra("REMINDER_ID", reminder.id);
+            sendBroadcast(intent);
+        });
+
     }
 }

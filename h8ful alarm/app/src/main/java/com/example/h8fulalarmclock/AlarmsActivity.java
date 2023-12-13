@@ -22,7 +22,7 @@ public class AlarmsActivity extends AppCompatActivity {
 
         // Get a database instance
         AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                AppDatabase.class, "database-name").build();
+                AppDatabase.class, "alarms").build();
 
         // Get the alarms from the database in a background thread
         new Thread(() -> {
@@ -47,9 +47,6 @@ public class AlarmsActivity extends AppCompatActivity {
             Intent intent = new Intent(AlarmsActivity.this, EditAlarmActivity.class);
             startActivity(intent);
         });
-
-
-
     }
 
     @Override

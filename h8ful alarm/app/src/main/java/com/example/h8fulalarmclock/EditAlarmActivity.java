@@ -48,7 +48,7 @@ public class EditAlarmActivity extends AppCompatActivity {
             // Fetch the alarm from the database in a background thread
             new Thread(() -> {
                 AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "database-name").build();
+                        AppDatabase.class, "alarms").build();
                 AlarmEntity alarm = db.alarmDao().getById(alarmId);
 
                 // Populate the UI with the alarm data in the main thread
@@ -111,7 +111,7 @@ public class EditAlarmActivity extends AppCompatActivity {
             // Save the alarm to the database in a background thread
             new Thread(() -> {
                 AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "database-name").build();
+                        AppDatabase.class, "alarms").build();
 
                 if (alarmId != -1) {
                     alarm.id = alarmId;

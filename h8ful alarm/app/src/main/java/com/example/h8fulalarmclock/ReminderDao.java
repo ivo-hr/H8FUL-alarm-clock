@@ -13,6 +13,9 @@ public interface ReminderDao {
     @Query("SELECT * FROM ReminderEntity")
     List<ReminderEntity> getAll();
 
+    @Query("SELECT * FROM ReminderEntity WHERE id = :id")
+    ReminderEntity getById(int id);
+
     @Insert
     void insert(ReminderEntity reminder);
 
@@ -21,4 +24,5 @@ public interface ReminderDao {
 
     @Update
     void update(ReminderEntity reminder);
+
 }

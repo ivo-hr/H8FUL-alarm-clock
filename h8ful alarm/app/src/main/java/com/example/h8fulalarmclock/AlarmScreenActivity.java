@@ -3,6 +3,8 @@ package com.example.h8fulalarmclock;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Intent;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.room.Room;
 
 public class AlarmScreenActivity extends AppCompatActivity {
+
+    private MediaPlayer mediaPlayer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,14 +32,30 @@ public class AlarmScreenActivity extends AppCompatActivity {
         // Fetch the alarm from the database in a background thread
         new Thread(() -> {
             AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                    AppDatabase.class, "database-name").build();
+                    AppDatabase.class, "alarms").build();
             AlarmEntity alarm = db.alarmDao().getById(alarmId);
             if (alarm == null) Log.d("AlarmScreenActivity", "Alarm is null ");
+            if (alarm != null) {
+                try {
+                    mediaPlayer = MediaPlayer.create(this, Uri.parse(alarm.getRingtone()));
+                }
+                catch (Exception e) {
+                    mediaPlayer = MediaPlayer.create(this, R.raw.alarm);
+                }
+                mediaPlayer.start();
+            }
+            else {
+                mediaPlayer = MediaPlayer.create(this, R.raw.alarm);
+                mediaPlayer.start();
+            }
+
             // Animate the button in the main thread
             runOnUiThread(() -> {
                 // Calculate the animation duration based on the speed
                 long duration = 750;
                 if (alarm != null) duration = 1000 / alarm.getSpeed();
+
+
                 // Get the size of the screen
                 DisplayMetrics displayMetrics = new DisplayMetrics();
                 getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -112,7 +132,11 @@ public class AlarmScreenActivity extends AppCompatActivity {
         stopAlarmButton.setOnClickListener(v -> {
             Intent serviceIntent = new Intent(this, AlarmService.class);
             stopService(serviceIntent);
-
+            //Stop the alarm sound
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.release();
+            }
             //Close the alarm screen
             finish();
         });
@@ -141,7 +165,7 @@ public class AlarmScreenActivity extends AppCompatActivity {
             if (alarmId != -1) {
                 new Thread(() -> {
                     AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                            AppDatabase.class, "database-name").build();
+                            AppDatabase.class, "alarms").build();
                     AlarmEntity alarm = db.alarmDao().getById(alarmId);
                     if (alarm != null && alarm.isEnabled()) {
                         // Snooze for 1-10 minutes
@@ -154,9 +178,29 @@ public class AlarmScreenActivity extends AppCompatActivity {
                     }
                 }).start();
             }
-
+            //Stop the alarm sound
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.release();
+            }
             //Close the alarm screen
             finish();
         });
+
+
+
+    }
+
+    //If back button is pressed, stop the alarm sound and close the alarm screen
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        //Stop the alarm sound
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+        }
+        Intent intent = new Intent(AlarmScreenActivity.this, MainActivity.class);
+        startActivity(intent);
     }
 }

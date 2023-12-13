@@ -60,7 +60,6 @@ public class ListAlarmAdapter extends BaseAdapter {
         alarmText.setText(alarmTime); // Set the text of the TextView to the alarm time
         alarmText.setOnClickListener(v -> {
             AlarmEntity clickedAlarm = alarms.get(position);
-            clickedAlarm.setEnabled(!clickedAlarm.isEnabled);
             //open edit alarm activity
             Intent intent = new Intent(context, EditAlarmActivity.class);
             intent.putExtra("ALARM_ID", clickedAlarm.getId());

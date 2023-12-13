@@ -20,9 +20,7 @@ public class AlarmEntity {
     public String time;
     public String days;
     public boolean isEnabled;
-
     public float speed;
-
     public String ringtone;
 
     public AlarmEntity(String time, String days, boolean isEnabled, float speed, String ringtone) {

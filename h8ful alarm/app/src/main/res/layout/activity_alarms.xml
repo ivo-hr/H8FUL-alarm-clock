@@ -16,6 +16,7 @@
         android:background="@drawable/circle_button"
         android:text="+"
         android:textAlignment="center"
+        android:textColor="@color/white"
         android:textSize="60sp"
         app:iconTint="@android:color/holo_green_light"
         app:layout_constraintBottom_toBottomOf="parent"

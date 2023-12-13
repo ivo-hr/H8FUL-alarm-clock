@@ -176,6 +176,7 @@
         android:layout_marginBottom="16dp"
         android:background="@drawable/circle_button"
         android:text="save"
+        android:textColor="@color/white"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

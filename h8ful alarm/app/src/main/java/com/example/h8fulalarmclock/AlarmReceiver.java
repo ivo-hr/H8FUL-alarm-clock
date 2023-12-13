@@ -17,7 +17,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         Log.d("AlarmReceiver", "Alarm with id " + alarmId + " received");
         // Reschedule the alarm
         if (alarmId != -1) {
-            AppDatabase db = Room.databaseBuilder(context, AppDatabase.class, "database-name").build();
+            AppDatabase db = Room.databaseBuilder(context, AppDatabase.class, "alarms").build();
             new Thread(() -> {
                 AlarmEntity alarm = db.alarmDao().getById(alarmId);
                 if (alarm != null && alarm.isEnabled()) {
