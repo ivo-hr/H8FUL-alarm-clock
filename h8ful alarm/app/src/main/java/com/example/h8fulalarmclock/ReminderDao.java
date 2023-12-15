@@ -25,4 +25,6 @@ public interface ReminderDao {
     @Update
     void update(ReminderEntity reminder);
 
+    @Query("SELECT * FROM ReminderEntity WHERE isEnabled = 1")
+    List<ReminderEntity> getActiveReminders();
 }

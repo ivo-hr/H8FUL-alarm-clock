@@ -53,7 +53,7 @@ public class EditReminderActivity extends AppCompatActivity {
 
                     String[] dateParts = reminder.date.split("/");
                     calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateParts[0]));
-                    calendar.set(Calendar.MONTH, Integer.parseInt(dateParts[1]));
+                    calendar.set(Calendar.MONTH, Integer.parseInt(dateParts[1]) - 1);
                     calendar.set(Calendar.YEAR, Integer.parseInt(dateParts[2]));
 
 
@@ -87,7 +87,9 @@ public class EditReminderActivity extends AppCompatActivity {
 
         saveButton.setOnClickListener(v -> {
             String message = reminderMessage.getText().toString();
-            String date = calendar.get(Calendar.DAY_OF_MONTH) + "/" + calendar.get(Calendar.MONTH) + "/" + calendar.get(Calendar.YEAR);
+            int monthFix = (int)calendar.get(Calendar.MONTH) + 1;
+
+            String date = calendar.get(Calendar.DAY_OF_MONTH) + "/" + monthFix + "/" + calendar.get(Calendar.YEAR);
             String time = calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE);
 
             // Create a reminder object with the data

@@ -23,4 +23,7 @@ public interface AlarmDao {
 
     @Update
     void update(AlarmEntity alarm);
+
+    @Query("SELECT * FROM AlarmEntity WHERE isEnabled = 1")
+    List<AlarmEntity> getActiveAlarms();
 }

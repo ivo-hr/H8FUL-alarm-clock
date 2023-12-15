@@ -54,7 +54,7 @@
     <TextView
         android:id="@+id/reminder_text"
         android:layout_width="169dp"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:text="remember!"
         android:textAlignment="center"
         android:textColor="@android:color/darker_gray"

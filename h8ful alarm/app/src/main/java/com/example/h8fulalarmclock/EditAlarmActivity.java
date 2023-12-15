@@ -15,6 +15,8 @@ import android.widget.TimePicker;
 import androidx.appcompat.app.WindowDecorActionBar;
 import androidx.room.Room;
 
+import java.util.Calendar;
+
 public class EditAlarmActivity extends AppCompatActivity {
 
     String ringtonePath = "select ringtone";
@@ -97,6 +99,34 @@ public class EditAlarmActivity extends AppCompatActivity {
             days += thursdayCheckbox.isChecked() ? "1" : "0";
             days += fridayCheckbox.isChecked() ? "1" : "0";
             days += saturdayCheckbox.isChecked() ? "1" : "0";
+
+            //If no days are selected, set the days to today/tomorrow
+            if (days.equals("0000000")) {
+                Log.d("EditAlarmActivity", "No days selected, setting to today/tomorrow");
+                Calendar calendar = Calendar.getInstance();
+                int today = calendar.get(Calendar.DAY_OF_WEEK);
+                Log.d("EditAlarmActivity", "Today is: " + today);
+                //Transform hour of day to 24 hour format
+                if (calendar.get(Calendar.HOUR_OF_DAY) > hour || (calendar.get(Calendar.HOUR_OF_DAY) == hour && calendar.get(Calendar.MINUTE) > minute)) {
+                    today++;
+                    Log.d("EditAlarmActivity", "Today is past alarm time, setting to tomorrow");
+                }
+                //Check if today is past sunday and set it to monday
+                if (today > 7) {
+                    today = 1;
+                }
+
+                //set days to today/tomorrow
+                days = "";
+                for (int i = 1; i < 8; i++) {
+                    if (i == today) days += "1";
+                    else days += "0";
+                }
+
+            }
+
+            Log.d("EditAlarmActivity", "days set to: " + days);
+
 
 
             // Get the speed from the SeekBar

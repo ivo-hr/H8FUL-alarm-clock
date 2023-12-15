@@ -13,7 +13,10 @@ import android.os.Looper;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,18 +63,104 @@ public class MainActivity extends AppCompatActivity {
 
         //Set alarm time to textview
         TextView alarmTime = (TextView) findViewById(R.id.next_alarm);
-        //TODO: Get alarm time from database
-        alarmTime.setText("07:00");
+        // Get the next alarm from the database
+        new Thread(() -> {
+            AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                    AppDatabase.class, "alarms").build();
+            List<AlarmEntity> activeAlarms = db.alarmDao().getActiveAlarms();
+            AlarmEntity nextAlarm = null;
+            LocalDateTime now = LocalDateTime.now();
+            int today = now.getDayOfWeek().getValue() + 1;
+            if (today == 8)
+                today = 1;
 
-        //Set reminder text to textview
+            for (AlarmEntity alarm : activeAlarms) {
+                // Check if the alarm is active today or tomorrow
+                if (alarm.days.charAt(today-1) == '1' || alarm.days.charAt(today) == '1') {
+                    // Parse the time from the alarm
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+                    if (alarm.time.length() < 5) {
+                        if (alarm.time.charAt(0) == ':')
+                            alarm.time = "00" + alarm.time;
+                        else if (alarm.time.charAt(1) == ':')
+                            alarm.time = "0" + alarm.time;
+                        while (alarm.time.length() < 5)
+                            alarm.time = alarm.time.substring(0, 3) + "0" + alarm.time.substring(3);
+                    }
+                    LocalTime alTim = LocalTime.parse(alarm.time, formatter);
+                    // Check if the alarm is later than the current time and (if set) the next alarm
+                    if (alTim.isAfter(now.toLocalTime()) && (nextAlarm == null || LocalTime.parse(nextAlarm.time, formatter).isAfter(alTim))) {
+                        nextAlarm = alarm;
+                    }
+                }
+            }
+            TextView alarmComment = (TextView) findViewById(R.id.alarm_text);
+            if (nextAlarm != null) {
+                // Update the alarmTime TextView on the main thread
+                AlarmEntity finalNextAlarm = nextAlarm;
+                runOnUiThread(() -> {
+                    alarmTime.setText(finalNextAlarm.time);
+                    alarmComment.setText("your next\nalarm is at");
+                });
+            }
+            else {
+                // Update the alarmTime TextView on the main thread
+                runOnUiThread(() -> {
+                    alarmTime.setText("");
+                    alarmComment.setText("no alarms\nfor today!");
+                });
+            }
+        }).start();
+
+        //Set reminder text and datetime to textview
         TextView reminderText = (TextView) findViewById(R.id.next_reminder);
-        //TODO: Get reminder text from database
-        reminderText.setText("take your medicine!");
-
-        //Set reminder date/time to textview
         TextView reminderTime = (TextView) findViewById(R.id.reminder_time);
-        //TODO: Get reminder time from database
-        reminderTime.setText("12 dec 12:00");
+        // Get the next reminder from the database
+        new Thread(() -> {
+            AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                    AppDatabase.class, "reminders").build();
+            List<ReminderEntity> activeReminders = db.reminderDao().getActiveReminders();
+            ReminderEntity nextRem = null;
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy HH:mm");
+            for (ReminderEntity reminder : activeReminders) {
+                // Parse the date and time from the reminder
+                if (reminder.time.length() < 5) {
+                    if (reminder.time.charAt(0) == ':')
+                        reminder.time = "00" + reminder.time;
+                    else if (reminder.time.charAt(1) == ':')
+                        reminder.time = "0" + reminder.time;
+                    while (reminder.time.length() < 5)
+                        reminder.time = reminder.time.substring(0, 3) + "0" + reminder.time.substring(3);
+                }
+                LocalDateTime reminderDateTime = LocalDateTime.parse(reminder.date + " " + reminder.time, formatter);
+                // Check if the reminder is later than the current time and (if set) the next reminder
+                if (reminderDateTime.isAfter(now) && (nextRem == null || LocalDateTime.parse(nextRem.date + " " + nextRem.time, formatter).isAfter(reminderDateTime))) {
+                    nextRem = reminder;
+                }
+            }
+            TextView reminderComment = (TextView) findViewById(R.id.reminder_text);
+            if (nextRem != null) {
+                // Update the reminderText and reminderTime TextViews on the main thread
+                ReminderEntity finalNextRem = nextRem;
+                runOnUiThread(() -> {
+                    reminderText.setText(finalNextRem.message);
+                    reminderTime.setText(finalNextRem.date + " " + finalNextRem.time);
+                    reminderComment.setText("remember to");
+                });
+            }
+            else {
+                // Update the reminderText and reminderTime TextViews on the main thread
+                runOnUiThread(() -> {
+                    reminderText.setText("");
+                    reminderTime.setText("");
+
+                    reminderComment.setText("no reminders coming up!");
+                });
+            }
+        }).start();
+
+
 
         //BUTTONS
         Button alarmButton = (Button) findViewById(R.id.but_alarm);
